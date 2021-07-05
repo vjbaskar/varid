@@ -28,7 +28,7 @@ import sklearn
 import scipy.stats as st
 from matplotlib.backends.backend_pdf import PdfPages
 from docopt import docopt
-
+import scipy
 from matplotlib.colors import LinearSegmentedColormap
 cmap = LinearSegmentedColormap.from_list(name='gene_cmap',
                                         colors=[(0, 'lightgrey'), (0.1, 'yellow'), (0.5, 'red'), (1, 'darkred')])
@@ -90,12 +90,12 @@ sc.pp.normalize_total(adata, exclude_highly_expressed=True, target_sum=10000)
 
 print(f"Subsetting to {clus}")
 adata = subset_to_clus(adata, clus, obs_name)
+if scipy.sparse.issparse(adata.X):
+    print("Data being converted to dense")
+    adata.X = adata.X.todense()
 
 exp_wt = adata[adata.obs['condition']=='WT',:].copy()
 exp_hom = adata[adata.obs['condition']=='Tet2Hom',:].copy()
-exp_wt.X = exp_wt.X.A
-exp_hom.X = exp_hom.X.A
-
 
 print(f"Shape of {cond1}")
 print(exp_wt.shape)
