@@ -48,9 +48,11 @@ python 04.plot_expAndVar.py --c1 WT --c2 Jak2Hom -s HSCs -g ery_GO_0030218.txt -
 
 #### Docker container
 If you want to use docker container use `vjbaskar/varid`.
-All the python scripts are present in the `/` folder.
 ```
 singularity build varid.sif docker://vjbaskar/varid
-singularity run varid.sif python /01.compute_varid.py -d ...
-
 ```
+All the python scripts are present in the `/` folder.
+```
+singularity run varid.sif python /04.plot_expAndVar.py --c1 WT --c2 Jak2Hom -s HSCs -g ery_GO_0030218.txt --ep WT_Jak2Hom_HSCs.deg.pkl --vp WT_Jak2Hom_HSCs.dvg.pkl
+```
+
