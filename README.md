@@ -51,7 +51,7 @@ If you want to use docker container use `vjbaskar/varid`.
 ```
 singularity build varid.sif docker://vjbaskar/varid
 ```
-All the python scripts are present in the `/` folder.
+All the python scripts are present in the `/` folder. For example, 
 ```
 singularity run varid.sif python /04.plot_expAndVar.py --c1 WT --c2 Jak2Hom -s HSCs -g ery_GO_0030218.txt --ep WT_Jak2Hom_HSCs.deg.pkl --vp WT_Jak2Hom_HSCs.dvg.pkl
 ```
