@@ -27,7 +27,7 @@ import sklearn
 import scipy.stats as st
 from matplotlib.backends.backend_pdf import PdfPages
 from docopt import docopt
-
+import scipy
 from matplotlib.colors import LinearSegmentedColormap
 cmap = LinearSegmentedColormap.from_list(name='gene_cmap',
                                         colors=[(0, 'lightgrey'), (0.1, 'yellow'), (0.5, 'red'), (1, 'darkred')])
@@ -40,6 +40,7 @@ arguments = docopt(__doc__)
 anndatafile = arguments["-d"]
 cond1 = arguments['-a']
 cond2 = arguments['-b']
+
 
 def filter_genes(adata, x):
     boo = np.sum(adata.X > x, axis=0) > x
@@ -88,9 +89,7 @@ def retain_shared_genes(data1, data2):
     data2 = data2[:,boo2]
     print(len(data1.var_names))
     print(len(data2.var_names))
-
     print(data1.var_names == data2.var_names)
-
     return data1, data2
 
 def subset_to_clus(data, clus_list, name):
@@ -105,26 +104,29 @@ def remove_zero_genes(data1, data2):
     data2 = data2[:,np.invert(boo)]
     return data1, data2
 
-
-
 # Read anndata
+print("Reading anndata")
 adata = sc.read(anndatafile)
-
 sc.pp.normalize_total(adata, exclude_highly_expressed=True, target_sum=10000)
 
-
+if scipy.sparse.issparse(adata.X):
+    print("Data being converted to dense")
+    adata.X = adata.X.todense()
 data_wt = adata[adata.obs['condition']==cond1,:].copy()
 data_hom = adata[adata.obs['condition']==cond2,:].copy()
-data_wt.X = data_wt.X.A
-data_hom.X = data_hom.X.A
+
+#data_wt.X = data_wt.X.A
+#data_hom.X = data_hom.X.A
 
 
 # Filter genes
+print("Filtering low information genes")
 data_wt = filter_genes(data_wt, 3)
 data_hom = filter_genes(data_hom, 3)
 
 
 # Mean-variance fitting
+print("Fitting mean-variance")
 r_wt = calculate_correction(data_wt)
 r_hom = calculate_correction(data_hom)
 
@@ -137,8 +139,6 @@ with PdfPages(cond1+"_"+cond2+"_corrections.pdf") as pdf:
     plt_hom.title(cond2)
     pdf.savefig()
     plt_hom.close()
-
-
 
 
 data_wt = anndata.AnnData(X=data_wt.X, obs=data_wt.obs, var=data_wt.var)
@@ -169,31 +169,6 @@ data_wt_var.write(cond1 + '_var.h5ad')
 data_hom_var.write(cond2 + '_var.h5ad')
 
 #### Quantile normalisation
-
-def retain_shared_genes(data1, data2):
-    boo1 = [name in data2.var_names for name in data1.var_names]
-    boo2 = [name in data1.var_names for name in data2.var_names]
-    data1 = data1[:,boo1]
-    data2 = data2[:,boo2]
-    print(len(data1.var_names))
-    print(len(data2.var_names))
-
-    print(data1.var_names == data2.var_names)
-
-    return data1, data2
-
-def subset_to_clus(data, clus_list, name):
-    boo = [clus in clus_list for clus in data.obs[name]]
-    data= data[boo,:]
-    return data
-
-def remove_zero_genes(data1, data2):
-    #remove genes which do nothing
-    boo = [sum(data1.X[:,i]) == 0 and sum(data2.X[:,i]) == 0 for i in range(len(data1.var_names))]
-    data1 = data1[:,np.invert(boo)]
-    data2 = data2[:,np.invert(boo)]    
-    return data1, data2
-
 
 data_wt = data_wt_var.copy()
 data_hom = data_hom_var.copy()
